@@ -28,5 +28,13 @@ describe('Transactor', function(){
       });
       socket.emit('data',test_data);
     });
+
+    it('emits the event to other listeners on the same channel',function(done){
+      done(new Error('write test here'));
+    });
+    
+    it('does not emit the event to listeners on other channels',function(done){
+      done(new Error('write test here'));
+    });
   });
 });
