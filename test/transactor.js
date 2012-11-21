@@ -23,6 +23,7 @@ describe('Transactor', function(){
         assert.equal(channel,'channel_1');
         assert.equal(data,test_data);
         assert.isFunction(cb);
+        cb(null,data);
         done();
       });
       socket.emit('data',test_data);

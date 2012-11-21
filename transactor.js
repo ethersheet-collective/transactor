@@ -45,3 +45,7 @@ Transactor.prototype.addSocket = function(channel,socket){
 Transactor.prototype.onTransaction = function(transaction_handler){
   this.transaction_handler = transaction_handler;
 };
+
+Transactor.prototype.tellOthers = function(){
+  // foooooo
+};
