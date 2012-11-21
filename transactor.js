@@ -1,81 +1,47 @@
 var inherits = require('util').inherits;
 var EventEmitter = require('events').EventEmitter;
 
-var Transactor = function(channels){
-  this.channels = channels || [];
-  this.transaction_handler = this.defaultEventHandler;
-  this.connection_handler = this.defaultEventHandler;
-  this.disconnection_handler = this.defaultEventHandler;
+var Transactor = function(server,transaction_handler){
+  this.transaction_handler = transaction_handler || this.defaultEventHandler;
+  if(server) this.setServer(server); 
 };
 
 inherits(Transactor,EventEmitter);
 module.exports = Transactor;
 
-// handler interface:  function eventHandler(... socket,cb)
-// callback interface: function cb(err,socket)
+// handler interface:  function eventHandler(... data,cb)
+// callback interface: function cb(err,data)
 Transactor.prototype.defaultEventHandler = function(){ 
   arguments[arguments.length - 1](null,arguments[arguments.length - 2]); 
 };
 
-Transactor.prototype.initializeServer = function(){
+Transactor.prototype.setServer = function(server){
   var trans = this;
-  this.io.sockets.on('connection', function(socket){
+  this.server = server;
+  this.server.on('connection', function(socket){
     trans.addSocket(socket);
   });
 };
 
-Transactor.prototype.addSocket = function(socket){
+Transactor.prototype.addSocket = function(channel,socket){
   var trans = this;
 
-  // apply the supplied connection handler to validate the connection
-  this.connection_handler(socket,function(err,socket){
-    if(err) throw err;
-   
     // add the supplied transaction handler to each channel on the socket
-    trans.channels.forEach(function(channel){
-      socket.on(channel,function(data){
-        trans.transaction_handler(channel,data,socket,function(err,event){
-          if(err) return socket.emit('error',err,event);
-          trans.tellOthers(channel,event,socket);
-        });
+    socket.on('data',function(data){
+      trans.transaction_handler(channel,data,function(err,data){
+        if(err) return socket.emit('error',err,event);
+        trans.tellOthers(channel,data,socket);
       });
     });
 
     // add the supplied disconnection handler
-    socket.on('disconnect', function(){
-      trans.disconnection_handler(socket,function(err,socket){
-        if(err) throw err;
-        trans.emit('disconnect',socket);
-        trans.tellOthers('disconnect',{},socket);
-      });
+    socket.on('close', function(){
+      if(err) throw err;
+      trans.emit('close',channel,socket);
     });
 
-  });
 };
 
 Transactor.prototype.onTransaction = function(transaction_handler){
   this.transaction_handler = transaction_handler;
 };
-
-Transactor.prototype.onConnection = function(connection_handler){
-  this.connection_handler = connection_handler;
-};
-
-Transactor.prototype.onDisconnection = function(disconnection_handler){
-  this.disconnection_handler = disconnection_handler;
-};
-
-Transactor.prototype.tellMe = function(channel,params,socket){
-  socket.emit(channel,params);
-};
-
-Transactor.prototype.tellOthers = function(channel,params,socket){
-  socket.broadcast.emit(channel,params);
-};
-
-Transactor.prototype.tellAll = function(channel,params,socket){
-  socket.emit(channel,params);
-  socket.broadcast.emit(channel,params);
-};
-
-
