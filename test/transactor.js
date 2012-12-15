@@ -1,4 +1,4 @@
-var Transactor = require('transactor');
+var Transactor = require('../transactor');
 var EventEmitter = require('events').EventEmitter;
 var assert = require('chai').assert;
 
