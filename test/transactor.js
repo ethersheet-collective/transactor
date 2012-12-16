@@ -85,5 +85,25 @@ describe('Transactor', function(){
         setTimeout(done,20);
       });
     });
+
+    describe('when a socket closes', function(){
+      beforeEach(function(){
+        trans.onTransaction(function(channel,data,cb){
+          cb(null,data);
+        });
+      });
+     
+      it('should be removed from the sockets array', function(done){
+        var socket1 = new EventEmitter();
+        socket1.write = function(data){
+          throw new Error('should not be called');
+        };
+        trans.addSocket('channel_1',socket1);
+        socket1.emit('close');
+        socket.emit('data', test_data);
+        setTimeout(done,20);
+      });
+
+    });
   });
 });

@@ -10,7 +10,7 @@
     "url": "git://github.com/ethersheet-collective/transactor.git"
   },
   "dependencies": {
-    "socket.io": ">=0.9.5"
+    "node-uuid": "*"
   },
   "devDependencies": {
     "mocha": ">=1.3.0",

@@ -1,3 +1,5 @@
+var uuid = require('node-uuid');
+
 var Transactor = function(o){
   o = o || {};
   if(typeof o.transaction_handler === 'function'){
@@ -14,10 +16,10 @@ Transactor.prototype.onTransaction = function(transaction_handler){
 
 Transactor.prototype.addSocket = function(channel,socket){
   var trans = this;
-  
+  var socket_id = uuid.v4(); 
   // add socket to socket pool
-  if(!this.sockets[channel]) this.sockets[channel] = [];
-  this.sockets[channel].push(socket);
+  if(!this.sockets[channel]) this.sockets[channel] = {};
+  this.sockets[channel][socket_id] = socket;
 
   // add the supplied transaction handler to each channel on the socket
   socket.on('data',function(data){
@@ -29,13 +31,14 @@ Transactor.prototype.addSocket = function(channel,socket){
 
   // add the supplied disconnection handler
   socket.on('close', function(){
+    delete trans.sockets[channel][socket_id];
   });
 
 };
 
 Transactor.prototype.broadcast = function(channel,data){
   if(!this.sockets[channel]) return;
-  this.sockets[channel].forEach(function(socket){
-    socket.write(data);
-  });
+  for( var socket_id in this.sockets[channel] ){
+    this.sockets[channel][socket_id].write(data);
+  }
 };
