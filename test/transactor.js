@@ -43,6 +43,17 @@ describe('Transactor', function(){
         trans.addSocket('channel_1',socket1);
         socket.emit('data',test_data);
       });
+
+      it('the event is not broadcast to listeners on other channels',function(done){
+        var socket1 = new EventEmitter();
+        socket1.write = function(data){
+          throw new Error('should not be called');
+        };
+        trans.addSocket('channel_2',socket1);
+        socket.emit('data',test_data);
+        setTimeout(done,20);
+      });
+
     });
     
     describe('When the transaction has an error', function(){
@@ -54,14 +65,24 @@ describe('Transactor', function(){
         });
       });
 
-      it('does not emit the event to listeners on other channels',function(done){
+      it('invokes the error handler on the socket',function(done){
         socket.error = function(err,data){
           assert.equal(err,test_error);
           assert.equal(data,test_data);
           done();
         }
         socket.emit('data',test_data);
-     //   done(new Error('write test here'));
+      });
+
+      it('does not emit the event to other listeners',function(done){
+        var socket1 = new EventEmitter();
+        trans.addSocket('channel_1',socket1);
+        socket1.write = function(){
+          throw new Error('should not be called');
+        }
+        socket.error = function(){}; 
+        socket.emit('data',test_data);
+        setTimeout(done,20);
       });
     });
   });
