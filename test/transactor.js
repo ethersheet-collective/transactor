@@ -66,11 +66,11 @@ describe('Transactor', function(){
       });
 
       it('invokes the error handler on the socket',function(done){
-        socket.error = function(err,data){
+        socket.on('error',function(err,data){
           assert.equal(err,test_error);
           assert.equal(data,test_data);
           done();
-        }
+        });
         socket.emit('data',test_data);
       });
 
@@ -80,7 +80,7 @@ describe('Transactor', function(){
         socket1.write = function(){
           throw new Error('should not be called');
         }
-        socket.error = function(){}; 
+        socket.on('error',function(){});
         socket.emit('data',test_data);
         setTimeout(done,20);
       });

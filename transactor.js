@@ -23,7 +23,7 @@ Transactor.prototype.addSocket = function(channel,socket){
   // add the supplied transaction handler to each channel on the socket
   socket.on('data',function(data){
     trans.transaction_handler(channel,data,function(err,data){
-      if(err) return socket.error(err,data);
+      if(err) return socket.emit('error',err,data);
       trans.broadcast(channel,data);
     });
   });
