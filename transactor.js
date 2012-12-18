@@ -1,6 +1,6 @@
 var uuid = require('node-uuid');
 
-var Transactor = function(o){
+var Transactor = module.exports = function(o){
   o = o || {};
   if(typeof o.transaction_handler === 'function'){
     this.onTransaction(o.transaction_handler);
@@ -8,15 +8,14 @@ var Transactor = function(o){
   this.sockets = {};
 };
 
-module.exports = Transactor;
-
 Transactor.prototype.onTransaction = function(transaction_handler){
   this.transaction_handler = transaction_handler;
 };
 
 Transactor.prototype.addSocket = function(channel,socket){
   var trans = this;
-  var socket_id = uuid.v4(); 
+  var socket_id = socket.id || uuid.v4();
+
   // add socket to socket pool
   if(!this.sockets[channel]) this.sockets[channel] = {};
   this.sockets[channel][socket_id] = socket;
