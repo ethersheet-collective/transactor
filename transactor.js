@@ -22,6 +22,7 @@ Transactor.prototype.addSocket = function(channel,socket){
 
   // add the supplied transaction handler to each channel on the socket
   socket.on('data',function(data){
+    console.log('received',channel,data);
     trans.transaction_handler(channel,data,function(err,data){
       if(err) return socket.emit('error',err,data);
       trans.broadcast(channel,data);
@@ -37,6 +38,7 @@ Transactor.prototype.addSocket = function(channel,socket){
 
 Transactor.prototype.broadcast = function(channel,data){
   if(!this.sockets[channel]) return;
+  console.log('broadcast',channel,data);
   for( var socket_id in this.sockets[channel] ){
     this.sockets[channel][socket_id].write(data);
   }
