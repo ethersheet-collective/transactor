@@ -31,6 +31,7 @@ Transactor.prototype.addSocket = function(channel,socket){
 
   // add the supplied disconnection handler
   socket.on('close', function(){
+    trans.onClose();
     delete trans.sockets[channel][socket_id];
   });
 
@@ -42,4 +43,8 @@ Transactor.prototype.broadcast = function(channel,data){
   for( var socket_id in this.sockets[channel] ){
     this.sockets[channel][socket_id].write(data);
   }
+};
+
+Transactor.prototype.onClose = function(){
+  
 };

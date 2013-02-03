@@ -1,6 +1,7 @@
 var Transactor = require('../transactor');
 var EventEmitter = require('events').EventEmitter;
 var assert = require('chai').assert;
+var sinon = require('sinon');
 
 describe('Transactor', function(){
   var trans, socket;
@@ -102,6 +103,20 @@ describe('Transactor', function(){
         socket1.emit('close');
         socket.emit('data', test_data);
         setTimeout(done,20);
+      });
+
+
+      it('should call transactor.onClose() when the socket is closed', function(done){
+        trans.onClose = sinon.spy();
+        var socket1 = new EventEmitter();
+        trans.addSocket('channel_1',socket1);
+        socket1.emit('close');
+        assert(trans.onClose.calledOnce, 'transactor.onClose() was not called');
+        done();
+      });
+      
+      it('should emit an event when onClose is called', function(){
+        //TODO: Figure out how and what we are going to emit for this event
       });
 
     });
