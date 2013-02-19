@@ -55,6 +55,18 @@ describe('Transactor', function(){
         setTimeout(done,20);
       });
 
+      it('the event is not broadcast back to originating socket',function(done){
+        var socket1 = new EventEmitter();
+        socket.write = function(data){
+          throw new Error('should not be called');
+        };
+        socket1.write = function(){}
+        trans.addSocket('channel_1',socket1);
+        socket.emit('data',test_data);
+        setTimeout(done,20);
+      });
+
+
     });
     
     describe('When the transaction has an error', function(){

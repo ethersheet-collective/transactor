@@ -15,6 +15,7 @@ Transactor.prototype.onTransaction = function(transaction_handler){
 Transactor.prototype.addSocket = function(channel,socket){
   var trans = this;
   var socket_id = socket.id || uuid.v4();
+  if(!socket.id) { socket.id = socket_id; }
 
   // add socket to socket pool
   if(!this.sockets[channel]) this.sockets[channel] = {};
@@ -25,7 +26,7 @@ Transactor.prototype.addSocket = function(channel,socket){
     console.log('received',channel,data);
     trans.transaction_handler(channel,data,function(err,data){
       if(err) return socket.emit('error',err,data);
-      trans.broadcast(channel,data);
+      trans.broadcast(socket,channel,data);
     });
   });
 
@@ -37,10 +38,11 @@ Transactor.prototype.addSocket = function(channel,socket){
 
 };
 
-Transactor.prototype.broadcast = function(channel,data){
+Transactor.prototype.broadcast = function(socket,channel,data){
   if(!this.sockets[channel]) return;
-  console.log('broadcast',channel,data);
+  console.log('broadcast',channel,data, socket.id);
   for( var socket_id in this.sockets[channel] ){
+    if(socket_id == socket.id) { continue; } // do not send back to the originating socket
     this.sockets[channel][socket_id].write(data);
   }
 };
