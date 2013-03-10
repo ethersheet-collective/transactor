@@ -2,14 +2,17 @@ var uuid = require('node-uuid');
 
 var Transactor = module.exports = function(o){
   o = o || {};
-  if(typeof o.transaction_handler === 'function'){
-    this.onTransaction(o.transaction_handler);
-  }
   this.sockets = {};
+  this.onTransaction(o.transaction_handler || function(){});
+  this.onClose(o.close_handler || function(){});
 };
 
 Transactor.prototype.onTransaction = function(transaction_handler){
   this.transaction_handler = transaction_handler;
+};
+
+Transactor.prototype.onClose = function(close_handler){
+  this.close_handler = close_handler;
 };
 
 Transactor.prototype.addSocket = function(channel,socket){
@@ -24,7 +27,7 @@ Transactor.prototype.addSocket = function(channel,socket){
   // add the supplied transaction handler to each channel on the socket
   socket.on('data',function(data){
     console.log('received',channel,data);
-    trans.transaction_handler(channel,data,function(err,data){
+    trans.transaction_handler(channel,socket,data,function(err,data){
       if(err) return socket.emit('error',err,data);
       trans.broadcast(socket,channel,data);
     });
@@ -32,7 +35,7 @@ Transactor.prototype.addSocket = function(channel,socket){
 
   // add the supplied disconnection handler
   socket.on('close', function(){
-    trans.onClose();
+    trans.close_handler(channel,socket);
     delete trans.sockets[channel][socket_id];
   });
 
@@ -45,8 +48,4 @@ Transactor.prototype.broadcast = function(socket,channel,data){
     if(socket_id == socket.id) { continue; } // do not send back to the originating socket
     this.sockets[channel][socket_id].write(data);
   }
-};
-
-Transactor.prototype.onClose = function(){
-  
 };

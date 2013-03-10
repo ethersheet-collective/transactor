@@ -16,9 +16,10 @@ describe('Transactor', function(){
   describe('When a socket emits an event', function(){
     var test_data = {event:'foo',foo:'bar'};
 
-    it('the transaction handler is invoked with the interface function(channel,data,cb)', function(done){
-      trans.onTransaction(function(channel,data,cb){
+    it('the transaction handler is invoked with the interface function(channel,sock,data,cb)', function(done){
+      trans.onTransaction(function(channel,sock,data,cb){
         assert.equal(channel,'channel_1');
+        assert.equal(socket.write,sock.write);
         assert.equal(data,test_data);
         assert.isFunction(cb);
         cb(null,data);
@@ -30,7 +31,7 @@ describe('Transactor', function(){
     describe('When the transaction is successful', function(){
       
       beforeEach(function(){
-        trans.onTransaction(function(channel,data,cb){
+        trans.onTransaction(function(channel,sock,data,cb){
           cb(null,data);
         });
       });
@@ -73,7 +74,7 @@ describe('Transactor', function(){
       var test_error = 'transaction error';
 
       beforeEach(function(){
-        trans.onTransaction(function(channel,data,cb){
+        trans.onTransaction(function(channel,sock,data,cb){
           cb(test_error,data);
         });
       });
@@ -101,7 +102,7 @@ describe('Transactor', function(){
 
     describe('when a socket closes', function(){
       beforeEach(function(){
-        trans.onTransaction(function(channel,data,cb){
+        trans.onTransaction(function(channel,sock,data,cb){
           cb(null,data);
         });
       });
