@@ -43,9 +43,10 @@ Transactor.prototype.addSocket = function(channel,socket){
 
 Transactor.prototype.broadcast = function(socket,channel,data){
   if(!this.sockets[channel]) return;
-  console.log('broadcast',channel,data, socket.id);
+  var origin = (socket && socket.id) ? socket.id : null;
+  console.log('broadcast',channel,data, origin);
   for( var socket_id in this.sockets[channel] ){
-    if(socket_id == socket.id) { continue; } // do not send back to the originating socket
+    if(socket_id == origin) { continue; } // do not send back to the originating socket
     this.sockets[channel][socket_id].write(data);
   }
 };
